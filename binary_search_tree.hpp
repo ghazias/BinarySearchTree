@@ -2,6 +2,7 @@
 #define BINARY_SEARCH_TREE_HPP_
 
 #include <functional>
+#include <cassert>
 
 namespace dsc {
 template <typename T>
@@ -9,10 +10,10 @@ class BinarySearchTree {
  public:
   // constructors and destructors
   BinarySearchTree() = default;                        // empty tree constructor
-  BinarySearchTree(const BinarySearchTree& original);  // copy constructor
-  BinarySearchTree(BinarySearchTree&& other);          // move constructor
-  // copy assignment
-  // move assignment
+  BinarySearchTree(const BinarySearchTree& original) = delete; // copy constructor
+  BinarySearchTree(BinarySearchTree&& other) = delete;          // move constructor
+  BinarySearchTree& operator=(const BinarySearchTree&) = delete; // copy assignment
+  BinarySearchTree& operator=(BinarySearchTree&&) = delete; // move assignment
   ~BinarySearchTree();  // TODO destructor
 
   // member functions
@@ -36,18 +37,16 @@ class BinarySearchTree {
   Node* search(const T& element);
   Node* search(Node* current, const T& element);
   void add(Node* current, const T& element);
-  Node* ptr_to(Node* current) {
-    if (current->parent->left == current) {
-      return current->parent->left;
-    } else if (current->parent->right == current) {
-      return current->parent->right;
-    }
-  }
+  void remove(Node* current, const T& element);
+  Node** ptr_to(Node* current);
+  Node* findMin(Node* current);
+  Node* prune(Node* current);
 };
 }  // namespace dsc
 
 template <typename T>
 dsc::BinarySearchTree<T>::~BinarySearchTree() {  // TODO destructor
+
 }
 
 template <typename T>
@@ -124,52 +123,102 @@ T& dsc::BinarySearchTree<T>::get(const T& element) {
 
 template <typename T>
 void dsc::BinarySearchTree<T>::remove(const T& element) {
+  // TODO root removal special case
   remove(root_, element);
 }
 
 template <typename T>
 void dsc::BinarySearchTree<T>::remove(Node* current, const T& element) {
-  if (current == nullptr) { return; } // best practice?
+  if (current == nullptr) {
+    return;
+  }  // best practice?
   if (element < current->element) {
-    remove(current->left, element); // recurse to left subtree
+    remove(current->left, element);  // recurse to left subtree
   }
 
   if (element > current->element) {
-    remove(current->right, element); // recurse to right subtree
+    remove(current->right, element);  // recurse to right subtree
   }
 
   if (current->element == element) {
-    if (current->left == nullptr && current->right == nullptr) { // node is leaf
-      ptr_to(current) == nullptr;
-      delete current;
+    prune(current);
+    delete current;
+  }
+}
+
+  template <typename T>
+  auto dsc::BinarySearchTree<T>::ptr_to(Node* current)->Node** {
+    if (current->parent == nullptr) {
+      return &root_;
     }
 
-    if (current->left != nullptr && current->right == nullptr) { // left child only
-      ptr_to(current) = current->left;
-      delete current;
-    }
-
-    if (current->right != nullptr && current->left == nullptr) { // right child only
-      ptr_to(current) = current->right;
-      delete current;
-    }
-
-    if (current->left != nullptr && current-> right != nullptr) { // two children
-      successor = findMin(current->right);
-      current->element = successor->element;
-      ptr_to(successor) = nullptr;
-      delete successor;
-    }
+    if (current->parent->left == current) {
+      return &current->parent->left;
+    } 
+    
+    assert(current->parent->right == current);
+    return &current->parent->right;
   }
 
-template <typename T>
-Node* dsc::BinarySearchTree::findMin(Node* current) {
-  while (current->left != nullptr) {
-    current = current->left;
+  template <typename T>
+  auto dsc::BinarySearchTree<T>::findMin(Node* current)->Node* {
+    return current->left == nullptr ? current : findMin(current->left);
+
+    #if 0
+    if (current->left == nullptr) {
+      return current;
+    }
+  
+    return findMin(current->left);
+    #endif
+
+    #if 0
+    while (current->left != nullptr) {
+      current = current->left;
+    }
+
+    return current;
+    #endif
   }
 
-  return current;
-}
-}
+  template <typename T>
+  auto dsc::BinarySearchTree<T>::prune(Node* current) -> Node* {
+      if (current == nullptr) {
+    return nullptr;
+  }
+
+    if (current->left == nullptr &&
+        current->right == nullptr) {  // node is leaf
+        *ptr_to(current) = nullptr;
+        return current;
+      }
+
+      if (current->left != nullptr &&
+          current->right == nullptr) {  // left child only
+        *ptr_to(current) = current->left;
+        current->left->parent = current->parent;
+        return current;
+      }
+
+      if (current->right != nullptr &&
+          current->left == nullptr) {  // right child only
+        *ptr_to(current) = current->right;
+        current->right->parent = current->parent;
+        return current;
+      }
+
+      assert(current->left != nullptr && current->right != nullptr); // two children
+      Node* successor = findMin(current->right); // find successor
+      prune(successor);
+      successor->parent = current->parent; // update successor's pointers
+      successor->left = current->left;
+      successor->right = current->right;
+
+      *ptr_to(current) = successor; // update current->parent to point to successor
+      current->left->parent = successor; // update current children to point to successor
+      current->right->parent = successor;
+
+      return current;
+    }
 
 #endif
