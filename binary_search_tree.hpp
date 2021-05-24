@@ -36,6 +36,13 @@ class BinarySearchTree {
   Node* search(const T& element);
   Node* search(Node* current, const T& element);
   void add(Node* current, const T& element);
+  Node* ptr_to(Node* current) {
+    if (current->parent->left == current) {
+      return current->parent->left;
+    } else if (current->parent->right == current) {
+      return current->parent->right;
+    }
+  }
 };
 }  // namespace dsc
 
@@ -117,26 +124,52 @@ T& dsc::BinarySearchTree<T>::get(const T& element) {
 
 template <typename T>
 void dsc::BinarySearchTree<T>::remove(const T& element) {
-  if (root_ == nullptr) { return; }
   remove(root_, element);
 }
 
 template <typename T>
 void dsc::BinarySearchTree<T>::remove(Node* current, const T& element) {
-  if (current->element < element) {
-    remove(current->left, element);
+  if (current == nullptr) { return; } // best practice?
+  if (element < current->element) {
+    remove(current->left, element); // recurse to left subtree
   }
 
-  if (current-> element > element) {
-    remove(current->right, element);
+  if (element > current->element) {
+    remove(current->right, element); // recurse to right subtree
   }
 
   if (current->element == element) {
-    if (current->left == nullptr && current->right == nullptr) {
-      // node is leaf
-      delete curre
+    if (current->left == nullptr && current->right == nullptr) { // node is leaf
+      ptr_to(current) == nullptr;
+      delete current;
+    }
+
+    if (current->left != nullptr && current->right == nullptr) { // left child only
+      ptr_to(current) = current->left;
+      delete current;
+    }
+
+    if (current->right != nullptr && current->left == nullptr) { // right child only
+      ptr_to(current) = current->right;
+      delete current;
+    }
+
+    if (current->left != nullptr && current-> right != nullptr) { // two children
+      successor = findMin(current->right);
+      current->element = successor->element;
+      ptr_to(successor) = nullptr;
+      delete successor;
     }
   }
+
+template <typename T>
+Node* dsc::BinarySearchTree::findMin(Node* current) {
+  while (current->left != nullptr) {
+    current = current->left;
+  }
+
+  return current;
+}
 }
 
 #endif
