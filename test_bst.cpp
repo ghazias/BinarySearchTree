@@ -5,7 +5,7 @@
 TEST_CASE("Empty constructor") { dsc::BinarySearchTree<int> tree; }
 
 TEST_CASE("Copy Constructor") {
-  dsc::BinarySearchTree<int> original;
+  dsc::BinarySearchTree<int> original{};
   original.add(12);
   original.add(88);
   original.add(2);
