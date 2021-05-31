@@ -91,6 +91,64 @@ TEST_CASE("get() stress test") {
 	for (std::size_t i = 0; i < N; ++i) {
 		REQUIRE(tree.get(i) == i);
 	}
+	//TODO: add assertion for return by ref	
 	
+}
+
+TEST_CASE("remove()") {
+	dsc::BinarySearchTree<int> tree{};
+	std::vector<int> values{ 5748, 4893, 920, 400000, 21900};
+	
+	for (auto n : values) {
+		tree.add(n);
+	}
+	
+	for (auto n : values) {
+		REQUIRE(tree.contains(n));
+		tree.remove(n);
+		REQUIRE_FALSE(tree.contains(n));
+	}
+}
+
+TEST_CASE("remove() stress test") {
+	dsc::BinarySearchTree<int> tree{};
+	
+	for (std::size_t i = 0; i < N; ++i) {
+		tree.add(i);
+	}
+	
+	for (std::size_t i = 0; i < N; ++i) {
+		REQUIRE(tree.contains(i));
+		tree.remove(i);
+		REQUIRE_FALSE(tree,contains(i));
+	}
+}
+
+TEST_CASE("empty()") {
+	dsc::BinarySearchTree<int> empty_tree{};
+	dsc::BinarySearchTree<int> nonempty_tree{};		
+	nonempty_tree.add(88);
+	
+	REQUIRE_FALSE(nonempty_tree.empty());
+	REQUIRE(empty_tree.empty());	
+}
+
+TEST_CASE("in_order()") {
+	dsc::BinarySearchTree<int> tree{};
+	std::vector<int> values = {10, 40, 50, 60};
+	
+	for (auto n : values) {
+		tree.add(n);
+	}
+
+	void value_2x(int value) { return value * 2; }
+	tree.in_order(value2x());
+	
+	for (auto n : values) {
+		REQUIRE(tree.contains(n * 2);
+	}
+}
+
+TEST_CASE("ptr_to()") {
 	
 }
