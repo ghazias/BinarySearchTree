@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <cassert>
+#include <vector>
 
 namespace dsc {
 template <typename T>
@@ -12,9 +13,9 @@ class BinarySearchTree {
   BinarySearchTree() = default;                        // empty tree constructor
   BinarySearchTree(const BinarySearchTree& original) = delete; // copy constructor
   BinarySearchTree(BinarySearchTree&& other) = delete;          // move constructor
-  BinarySearchTree& operator=(const BinarySearchTree&) = delete; // copy assignment
-  BinarySearchTree& operator=(BinarySearchTree&&) = delete; // move assignment
-  ~BinarySearchTree();  // TODO destructor
+  BinarySearchTree& operator=(const BinarySearchTree& original) = delete; // copy assignment
+  BinarySearchTree& operator=(BinarySearchTree&& original) = delete; // move assignment
+  ~BinarySearchTree(); 
 
   // member functions
   void add(const T& element);
@@ -32,8 +33,10 @@ class BinarySearchTree {
     Node* right;
   };
 
-  void in_order(Node* current, std::function<void(const T&)> func) const;
   Node* root_{};
+  void destroy(Node* current);
+  void copy(const BinarySearchTree& other);
+  void in_order(Node* current, std::function<void(const T&)> func) const;
   Node* search(const T& element);
   Node* search(Node* current, const T& element);
   void add(Node* current, const T& element);
@@ -45,8 +48,18 @@ class BinarySearchTree {
 }  // namespace dsc
 
 template <typename T>
-dsc::BinarySearchTree<T>::~BinarySearchTree() {  // TODO destructor
+dsc::BinarySearchTree<T>::~BinarySearchTree() {
+  destroy(root_);
+  root_ = nullptr;
+}
 
+template <typename T>
+void dsc::BinarySearchTree<T>::destroy(Node* current) {
+  if (current != nullptr) {
+    destroy(current->left);
+    destroy(current->right);
+    delete current;
+  }
 }
 
 template <typename T>
@@ -124,6 +137,7 @@ T& dsc::BinarySearchTree<T>::get(const T& element) {
 template <typename T>
 void dsc::BinarySearchTree<T>::remove(const T& element) {
   // TODO root removal special case
+
   remove(root_, element);
 }
 
@@ -131,7 +145,7 @@ template <typename T>
 void dsc::BinarySearchTree<T>::remove(Node* current, const T& element) {
   if (current == nullptr) {
     return;
-  }  // best practice?
+  }
   if (element < current->element) {
     remove(current->left, element);  // recurse to left subtree
   }
@@ -163,22 +177,6 @@ void dsc::BinarySearchTree<T>::remove(Node* current, const T& element) {
   template <typename T>
   auto dsc::BinarySearchTree<T>::findMin(Node* current)->Node* {
     return current->left == nullptr ? current : findMin(current->left);
-
-    #if 0
-    if (current->left == nullptr) {
-      return current;
-    }
-  
-    return findMin(current->left);
-    #endif
-
-    #if 0
-    while (current->left != nullptr) {
-      current = current->left;
-    }
-
-    return current;
-    #endif
   }
 
   template <typename T>
