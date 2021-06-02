@@ -11,7 +11,7 @@ class BinarySearchTree {
  public:
   // constructors and destructors
   BinarySearchTree() = default;                        // empty tree constructor
-  BinarySearchTree(const BinarySearchTree& original) = delete; // copy constructor
+  BinarySearchTree(const BinarySearchTree& original); // copy constructor
   BinarySearchTree(BinarySearchTree&& other) = delete;          // move constructor
   BinarySearchTree& operator=(const BinarySearchTree& original) = delete; // copy assignment
   BinarySearchTree& operator=(BinarySearchTree&& original) = delete; // move assignment
@@ -46,6 +46,52 @@ class BinarySearchTree {
   Node* prune(Node* current);
 };
 }  // namespace dsc
+
+template <typename T>
+dsc::BinarySearchTree<T>::BinarySearchTree(const BinarySearchTree& original) {
+  if (original.root_ == nullptr) {
+    root_ = nullptr;
+  } else {
+  copy(this->root_, original);
+  }
+} // copy constructor
+
+template <typename T>
+dsc::BinarySearchTree<T>::BinarySearchTree(BinarySearchTree<T>&& other) : root_{other.root_} {
+    other.root_ = nullptr;
+} // move constructor
+
+template <typename T>
+BinarySearchTree<T>& BinarySearchTree<T>::operator=(const BinarySearchTree<T>& original) {
+  if (this != &original) {
+    destroy();
+    copy(original);
+  }
+  return *this;
+} // copy assignment
+
+template <typename T>
+BinarySearchTree<T>& BinarySearchTree<T>::operator=(BinarySearchTree<T>&& other) {
+  if (this != &other) {
+    destroy();
+
+    root_ = other.root_;
+
+    other.root_ = nullptr;
+}
+  return *this;
+} // move assignment
+
+template <typename T>
+void dsc::BinarySearchTree<T>::copy(Node*& current, Node*& original) {
+  if (original == nullptr) {
+    current = nullptr;
+  }
+
+  current = new Node{original->element, original->parent, original->left, original->right};
+  copy(current->left, original->left);
+  copy(current->right, original->right);
+}
 
 template <typename T>
 dsc::BinarySearchTree<T>::~BinarySearchTree() {
@@ -218,5 +264,10 @@ void dsc::BinarySearchTree<T>::remove(Node* current, const T& element) {
 
       return current;
     }
+
+  template <typename T>
+  bool contains(const T& element) {
+    return search(element);
+  }
 
 #endif

@@ -54,6 +54,7 @@ TEST_CASE("add() stress test") {
 		REQUIRE(tree.contains(i));
 	}
 }
+
 TEST_CASE("contains()") {
 	dsc::BinarySearchTree<int> tree{};
 	std::vector<int> values = {100, 25, 250, 115, 670};
@@ -65,6 +66,8 @@ TEST_CASE("contains()") {
 	for (auto n : values) {
 		REQUIRE(tree.contains(n));
 	}
+
+	REQUIRE_FALSE(tree.contains(1));
 
 }
 
@@ -133,6 +136,16 @@ TEST_CASE("empty()") {
 	REQUIRE(empty_tree.empty());	
 }
 
+TEST_CASE("ptr_to()") {
+	dsc::BinarySearchTree<int> tree;
+	tree.add(18);
+	tree.add(12);
+
+	REQUIRE(&search(18) == ptr_to(search(12)));
+	REQUIRE(ptr_to(18) == nullptr);
+}
+
+void print_node(const Node* current) { std::cout << current->element};
 TEST_CASE("in_order()") {
 	dsc::BinarySearchTree<int> tree{};
 	std::vector<int> values = {10, 40, 50, 60};
@@ -141,12 +154,7 @@ TEST_CASE("in_order()") {
 		tree.add(n);
 	}
 
-	void value_2x(int value) { return value * 2; }
-	tree.in_order(value2x());
 	
-	for (auto n : values) {
-		REQUIRE(tree.contains(n * 2);
-	}
 }
 
 TEST_CASE("ptr_to()") {
