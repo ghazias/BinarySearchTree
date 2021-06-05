@@ -183,7 +183,7 @@ TEST_CASE("contains()") {
 }
 
 TEST_CASE("get()") {
-  dsc::BinarySearchTree<int> tree;
+  dsc::BinarySearchTree<int> tree{};
   std::vector<int> values{50, 60, 70, 80, 65};
 
   for (auto v : values) {
@@ -191,6 +191,19 @@ TEST_CASE("get()") {
     REQUIRE(tree.contains(v));
     REQUIRE(tree.get(v) == v);  // strange test
   }
+}
+
+TEST_CASE("size()") {
+  dsc::BinarySearchTree<int> tree{};
+  REQUIRE(tree.size() == 0);
+
+  std::vector<int> values{50, 60, 70, 80, 65};
+
+  for (auto v : values) {
+    tree.add(v);
+  }
+
+  REQUIRE(tree.size() == values.size());
 }
 
 TEST_CASE("remove()") {
@@ -209,11 +222,12 @@ TEST_CASE("remove()") {
       REQUIRE_FALSE(tree.contains(v));
     }
   }
+
   SECTION("Remove root") {
-    REQUIRE(*values.begin() == tree.root());
     tree.remove(*values.begin());
-    REQUIRE(*values.begin() != tree.root());
-    REQUIRE(*values.end() == tree.root());
+
+    REQUIRE(tree.size() == values.size() - 1);
+    REQUIRE_FALSE(tree.contains(values.front()));
   }
 }
 
@@ -226,8 +240,8 @@ TEST_CASE("Remove right child with no children - edge case") {
   }
 
   tree.remove(150);
-
-  // REQUIRE(tree.)
+  REQUIRE_FALSE(tree.contains(150));
+  REQUIRE(tree.size() == values.size() - 1);
 }
 
 TEST_CASE("empty()") {
@@ -237,19 +251,6 @@ TEST_CASE("empty()") {
 
   REQUIRE_FALSE(nonempty_tree.empty());
   REQUIRE(empty_tree.empty());
-}
-
-TEST_CASE("root()") {
-  dsc::BinarySearchTree<int> tree{};
-
-  SECTION("Empty root") { REQUIRE_THROWS(tree.root()); }
-
-  SECTION("Nonempty root") {
-    constexpr int root_value = 1000;
-
-    tree.add(root_value);
-    REQUIRE(tree.root() == root_value);
-  }
 }
 
 TEST_CASE("in_order()") {

@@ -22,9 +22,9 @@ class BinarySearchTree {
   T& get(const T& element);               // captures element by reference
   void remove(const T& element);          // removes element from tree
   bool empty() const { return root_ == nullptr; }  // checks if tree is empty
-  T& root() const;
   void in_order(std::function<void(const T&)>)
       const;  // functional method for applying in order
+  std::size_t size() const { return size_impl(root_); }
 
  private:
   struct Node {
@@ -47,8 +47,20 @@ class BinarySearchTree {
   Node** ptr_to(Node* current);   // determines node position
   Node* find_min(Node* current);  // finds replacement node
   Node* prune(Node* current);     // removes node without deleting
+  std::size_t size_impl(Node* start) const;
 };
 }  // namespace dsc
+
+template <typename T>
+std::size_t dsc::BinarySearchTree<T>::size_impl(Node* current) const {
+  if (current == nullptr) {
+    return 0;
+  }
+
+  std::size_t left = size_impl(current->left);
+  std::size_t right = size_impl(current->right);
+  return left + right + 1;
+}
 
 template <typename T>
 dsc::BinarySearchTree<T>::BinarySearchTree(const BinarySearchTree& original) {
@@ -190,12 +202,6 @@ bool dsc::BinarySearchTree<T>::contains(const T& element) const {
 
 template <typename T>
 void dsc::BinarySearchTree<T>::remove(const T& element) {
-  if (search(element) == root_) {
-    delete root_;
-    root_ = find_min(root_);  // redundant with delete?
-    return;
-  }  // root special case
-
   remove_impl(root_, element);
 }
 
@@ -278,14 +284,6 @@ auto dsc::BinarySearchTree<T>::prune(Node* current) -> Node* {
   }
 
   return current;
-}
-
-template <typename T>
-T& dsc::BinarySearchTree<T>::root() const {
-  if (root_ == nullptr) {
-    throw std::out_of_range("null root");
-  }
-  return root_->element;
 }
 
 #endif
