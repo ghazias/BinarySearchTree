@@ -1,14 +1,16 @@
-#include "binary_search_tree.hpp"
-#include "binary_search_tree.hpp" // test include guard
-#include "catch.hpp"
+#include <unordered_map>
 #include <vector>
 
-TEST_CASE("Empty constructor") { 
-  dsc::BinarySearchTree<int> tree; 
+#include "binary_search_tree.hpp"
+#include "binary_search_tree.hpp"  // test include guard
+#include "catch.hpp"
+
+TEST_CASE("Empty constructor") {
+  dsc::BinarySearchTree<int> tree;
   REQUIRE(tree.empty());
 }
 
-TEST_CASE("Copy Constructor") {
+TEST_CASE("Copy constructor") {
   dsc::BinarySearchTree<int> original{};
   std::vector<int> values = {12, 25, 6, 3, 7, 99};
 
@@ -16,147 +18,245 @@ TEST_CASE("Copy Constructor") {
     original.add(n);
   }
 
-  dsc::BinarySearchTree<int> copy;
-	  SECTION("is deep") {
-		copy = original;	
-		REQUIRE(&copy != &original);
-		REQUIRE(copy.root_ != original.root_);
-	}
+  dsc::BinarySearchTree<int> copy(original);
+
+  SECTION("Copy has all values") {
+    for (auto v : values) {
+      REQUIRE(copy.contains(v));
+    }
+  }
+
+  SECTION("Copy is deep") {
+    for (auto v : values) {
+      REQUIRE(&copy.get(v) != &original.get(v));
+    }
+  }
+
+  SECTION("Copy operations don't affect original") {
+    copy.remove(6);
+    REQUIRE(original.contains(6));
+  }
 }
 
 TEST_CASE("Move Constructor") {
-	dsc::BinarySearchTree<char> original{};
-	
+  dsc::BinarySearchTree<char> source{};
+  std::vector<char> values = {'a', 'b', 'c', 'd'};
+  std::unordered_map<char, char*> addresses;
+
+  for (auto v : values) {
+    source.add(v);
+    addresses[v] = &source.get(v);
+    // TODO fix address tracking and iteration for address check
+  }
+
+  dsc::BinarySearchTree<char> moved = std::move(source);
+
+  SECTION("Element memory locations haven't changed") {
+    for (auto [v, addr] : addresses) {
+      REQUIRE(&moved.get(v) == addr);
+    }
+  }
+
+  SECTION("Assign after move") {
+    moved.add('e');
+    REQUIRE(moved.contains('e'));
+  }
+
+  SECTION("Source list is nulled") { REQUIRE(source.empty()); }
 }
+
+TEST_CASE("Nonempty copy assignment") {
+  dsc::BinarySearchTree<int> original{};
+  std::vector<int> values = {349, 12, 18, 590, 445, 351, 1999};
+
+  for (auto v : values) {
+    original.add(v);
+  }
+
+  SECTION("Empty =") {
+    dsc::BinarySearchTree<int> copy = original;
+
+    for (auto v : values) {
+      REQUIRE(copy.contains(v));
+      REQUIRE(&copy.get(v) != &original.get(v));
+    }
+  }
+
+  SECTION("Nonempty =") {
+    dsc::BinarySearchTree<int> copy;
+    for (int i = 14; i < 1000; i *= i) {
+      copy.add(i);
+    }
+
+    copy = original;
+
+    for (auto v : values) {
+      REQUIRE(copy.contains(v));
+      REQUIRE(&copy.get(v) != &original.get(v));
+    }
+  }
+
+  SECTION("Self =") {
+    dsc::BinarySearchTree<int>* addr = &original;
+    original = original;
+    REQUIRE(&original == addr);
+  }
+}
+
+TEST_CASE("Empty copy assignment") {
+  dsc::BinarySearchTree<int> original{};
+
+  SECTION("Empty =") {
+    dsc::BinarySearchTree<int> copy = original;
+    REQUIRE(copy.empty());
+    REQUIRE(&copy != &original);
+  }
+
+  SECTION("Nonempty =") {
+    dsc::BinarySearchTree<int> copy{};
+    copy.add(500);
+    copy.add(250);
+    copy.add(750);
+
+    REQUIRE_FALSE(copy.empty());
+    copy = original;
+
+    REQUIRE(copy.empty());
+    REQUIRE(&copy != &original);
+  }
+
+  SECTION("Self =") {
+    dsc::BinarySearchTree<int>* addr = &original;
+    original = original;
+
+    REQUIRE(original.empty());
+    REQUIRE(&original == addr);
+  }
+}
+
+TEST_CASE("Move assignment") {
+  dsc::BinarySearchTree<char> source;
+  std::vector<char> values = {'f', 'a', 'm'};
+
+  for (auto v : values) {
+    source.add(v);
+  }
+
+  dsc::BinarySearchTree<char>* tree_addr = &source;
+  dsc::BinarySearchTree<char> moved = std::move(source);
+  REQUIRE_FALSE(moved.empty());
+  REQUIRE(&moved != tree_addr);
+
+  for (auto v : values) {
+    REQUIRE(moved.contains(v));
+  }
+}
+
+// TODO == operator implementation and tests
 
 TEST_CASE("add()") {
-	dsc::BinarySearchTree<int> tree{};
-	std::vector<int> values = {100, 25, 250, 115, 670};
+  dsc::BinarySearchTree<int> tree{};
 
-	for (auto n : values) {
-		tree.add(n);
-	}
-	
-	for (auto n : values) {
-		REQUIRE(tree.contains(n));
-	}
+  tree.add(20);  // add a root
+  REQUIRE(tree.contains(20));
 
-}
+  tree.add(10);  // add a left child
+  REQUIRE(tree.contains(10));
 
-TEST_CASE("add() stress test") {
-	dsc::BinarySearchTree<int> tree{};
-	
-	for (std::size_t i = 0; i < N; ++i) {
-		tree.add(i);
-	}
-
-	for (std::size_t i = 0; i < N; ++i) {
-		REQUIRE(tree.contains(i));
-	}
+  tree.add(30);  // add a right child
+  REQUIRE(tree.contains(30));
 }
 
 TEST_CASE("contains()") {
-	dsc::BinarySearchTree<int> tree{};
-	std::vector<int> values = {100, 25, 250, 115, 670};
+  dsc::BinarySearchTree<int> tree{};
+  std::vector<int> values = {100, 25, 250, 115, 670};
 
-	for (auto n : values) {
-		tree.add(n);
-	}
-	
-	for (auto n : values) {
-		REQUIRE(tree.contains(n));
-	}
+  for (auto n : values) {
+    tree.add(n);
+  }
 
-	REQUIRE_FALSE(tree.contains(1));
+  for (auto n : values) {
+    REQUIRE(tree.contains(n));
+  }
 
+  REQUIRE_FALSE(tree.contains(1));  // invalid search
 }
 
 TEST_CASE("get()") {
-	dsc::BinarySearchTree<int> tree;
-	std::vector<int> values{50, 60, 70, 80, 65};	
+  dsc::BinarySearchTree<int> tree;
+  std::vector<int> values{50, 60, 70, 80, 65};
 
-	for (auto n : values) {
-		tree.add(n);
-	}
-	
-	for (auto n : values) {
-		REQUIRE(tree.get(n) == n);
-		REQUIRE(&tree.get(n) != &n);
-	}
-}
-
-TEST_CASE("get() stress test") {
-	dsc::BinarySearchTree<int> tree;
-	for (std::size_t i = 0; i < N; ++i) {
-		tree.add(i);
-	}
-	
-	for (std::size_t i = 0; i < N; ++i) {
-		REQUIRE(tree.get(i) == i);
-	}
-	//TODO: add assertion for return by ref	
-	
+  for (auto v : values) {
+    tree.add(v);
+    REQUIRE(tree.contains(v));
+    REQUIRE(tree.get(v) == v);  // strange test
+  }
 }
 
 TEST_CASE("remove()") {
-	dsc::BinarySearchTree<int> tree{};
-	std::vector<int> values{ 5748, 4893, 920, 400000, 21900};
-	
-	for (auto n : values) {
-		tree.add(n);
-	}
-	
-	for (auto n : values) {
-		REQUIRE(tree.contains(n));
-		tree.remove(n);
-		REQUIRE_FALSE(tree.contains(n));
-	}
+  dsc::BinarySearchTree<int> tree{};
+  std::vector<int> values{5748, 4893, 920, 400000,
+                          21900};  // root at beginning, replacement root at end
+
+  for (auto v : values) {
+    tree.add(v);
+  }
+
+  SECTION("Stress test") {
+    for (auto v : values) {
+      REQUIRE(tree.contains(v));
+      tree.remove(v);
+      REQUIRE_FALSE(tree.contains(v));
+    }
+  }
+  SECTION("Remove root") {
+    REQUIRE(*values.begin() == tree.root());
+    tree.remove(*values.begin());
+    REQUIRE(*values.begin() != tree.root());
+    REQUIRE(*values.end() == tree.root());
+  }
 }
 
-TEST_CASE("remove() stress test") {
-	dsc::BinarySearchTree<int> tree{};
-	
-	for (std::size_t i = 0; i < N; ++i) {
-		tree.add(i);
-	}
-	
-	for (std::size_t i = 0; i < N; ++i) {
-		REQUIRE(tree.contains(i));
-		tree.remove(i);
-		REQUIRE_FALSE(tree,contains(i));
-	}
+TEST_CASE("Remove right child with no children - edge case") {
+  dsc::BinarySearchTree<int> tree{};
+  std::vector<int> values{100, 50, 150, 175, 125};
+
+  for (auto v : values) {
+    tree.add(v);
+  }
+
+  tree.remove(150);
+
+  // REQUIRE(tree.)
 }
 
 TEST_CASE("empty()") {
-	dsc::BinarySearchTree<int> empty_tree{};
-	dsc::BinarySearchTree<int> nonempty_tree{};		
-	nonempty_tree.add(88);
-	
-	REQUIRE_FALSE(nonempty_tree.empty());
-	REQUIRE(empty_tree.empty());	
+  dsc::BinarySearchTree<int> empty_tree{};
+  dsc::BinarySearchTree<int> nonempty_tree{};
+  nonempty_tree.add(88);
+
+  REQUIRE_FALSE(nonempty_tree.empty());
+  REQUIRE(empty_tree.empty());
 }
 
-TEST_CASE("ptr_to()") {
-	dsc::BinarySearchTree<int> tree;
-	tree.add(18);
-	tree.add(12);
+TEST_CASE("root()") {
+  dsc::BinarySearchTree<int> tree{};
 
-	REQUIRE(&search(18) == ptr_to(search(12)));
-	REQUIRE(ptr_to(18) == nullptr);
+  SECTION("Empty root") { REQUIRE_THROWS(tree.root()); }
+
+  SECTION("Nonempty root") {
+    constexpr int root_value = 1000;
+
+    tree.add(root_value);
+    REQUIRE(tree.root() == root_value);
+  }
 }
 
-void print_node(const Node* current) { std::cout << current->element};
 TEST_CASE("in_order()") {
-	dsc::BinarySearchTree<int> tree{};
-	std::vector<int> values = {10, 40, 50, 60};
-	
-	for (auto n : values) {
-		tree.add(n);
-	}
+  dsc::BinarySearchTree<int> tree{};
+  std::vector<int> values = {10, 40, 50, 60};
 
-	
-}
-
-TEST_CASE("ptr_to()") {
-	
+  for (auto n : values) {
+    tree.add(n);
+  }
 }
