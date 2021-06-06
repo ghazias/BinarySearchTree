@@ -142,10 +142,11 @@ TEST_CASE("Move assignment") {
     source.add(v);
   }
 
-  dsc::BinarySearchTree<char>* tree_addr = &source;
-  dsc::BinarySearchTree<char> moved = std::move(source);
-  REQUIRE_FALSE(moved.empty());
-  REQUIRE(&moved != tree_addr);
+  dsc::BinarySearchTree<char> moved{};
+  moved.add('c');
+  moved.add('k');
+
+  moved = source;
 
   for (auto v : values) {
     REQUIRE(moved.contains(v));

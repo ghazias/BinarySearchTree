@@ -57,15 +57,12 @@ std::size_t dsc::BinarySearchTree<T>::size_impl(Node* current) const {
     return 0;
   }
 
-  std::size_t left = size_impl(current->left);
-  std::size_t right = size_impl(current->right);
-  return left + right + 1;
+  return size_impl(current->left) + size_impl(current->right) + 1;
 }
 
 template <typename T>
-dsc::BinarySearchTree<T>::BinarySearchTree(const BinarySearchTree& original) {
-  root_ = copy(nullptr, original.root_);
-}  // copy constructor
+dsc::BinarySearchTree<T>::BinarySearchTree(const BinarySearchTree& original)
+    : root_{copy(nullptr, original.root_)} {}  // copy constructor
 
 template <typename T>
 auto dsc::BinarySearchTree<T>::copy(Node* parent, Node* current) -> Node* {
@@ -100,7 +97,7 @@ template <typename T>
 dsc::BinarySearchTree<T>& dsc::BinarySearchTree<T>::operator=(
     BinarySearchTree<T>&& other) {
   if (this != &other) {
-    destroy();
+    destroy(root_);
     root_ = other.root_;
     other.root_ = nullptr;
   }
