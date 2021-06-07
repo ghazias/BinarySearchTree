@@ -65,7 +65,7 @@ TEST_CASE("Move Constructor") {
   SECTION("Source list is nulled") { REQUIRE(source.empty()); }
 }
 
-TEST_CASE("Nonempty copy assignment") {
+TEST_CASE("Copy assignment from a populated list to a new one") {
   dsc::BinarySearchTree<int> original{};
   std::vector<int> values = {349, 12, 18, 590, 445, 351, 1999};
 
@@ -103,7 +103,7 @@ TEST_CASE("Nonempty copy assignment") {
   }
 }
 
-TEST_CASE("Empty copy assignment") {
+TEST_CASE("Copy assignment from an empty list to a new one") {
   dsc::BinarySearchTree<int> original{};
 
   SECTION("Empty =") {
@@ -137,9 +137,10 @@ TEST_CASE("Empty copy assignment") {
 TEST_CASE("Move assignment") {
   dsc::BinarySearchTree<char> source;
   std::vector<char> values = {'f', 'a', 'm'};
-
+  std::vector<char*> addresses{};
   for (auto v : values) {
     source.add(v);
+    addresses[v] = &source.get(v);
   }
 
   dsc::BinarySearchTree<char> moved{};
@@ -150,6 +151,7 @@ TEST_CASE("Move assignment") {
 
   for (auto v : values) {
     REQUIRE(moved.contains(v));
+    REQUIRE(&moved.get(v) == addresses[v]);
   }
 }
 
@@ -262,3 +264,12 @@ TEST_CASE("in_order()") {
     tree.add(n);
   }
 }
+
+#if 0
+TEST_CASE("initializer list constructor") {
+  dsc::BinarySearchTree<int> tree = {20, 394};
+
+  REQUIRE(tree.contains(20));
+  REQUIRE(tree.contains(394));
+}
+#endif

@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <functional>
+#include <initializer_list>
 #include <vector>
 
 namespace dsc {
@@ -12,6 +13,8 @@ class BinarySearchTree {
   BinarySearchTree() = default;                        // empty constructor
   BinarySearchTree(const BinarySearchTree& original);  // copy constructor
   BinarySearchTree(BinarySearchTree&& other);          // move constructor
+  BinarySearchTree(
+      std::initializer_list<T> list);  // initializer list constructor
   BinarySearchTree& operator=(
       const BinarySearchTree& original);                     // copy assignment
   BinarySearchTree& operator=(BinarySearchTree&& original);  // move assignment
@@ -81,6 +84,15 @@ dsc::BinarySearchTree<T>::BinarySearchTree(BinarySearchTree<T>&& other)
     : root_{other.root_} {
   other.root_ = nullptr;
 }  // move constructor
+
+#if 0
+template <typename T>
+dsc::BinarySearchTree<T>::BinarySearchTree(std::initializer_list<T> list) {
+  for (auto n : list) {
+    this.add(n);
+  }
+}  // initializer list constructor
+#endif
 
 template <typename T>
 dsc::BinarySearchTree<T>& dsc::BinarySearchTree<T>::operator=(
